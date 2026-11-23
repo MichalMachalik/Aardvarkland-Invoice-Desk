@@ -56,9 +56,10 @@ function say(message) {
   noticeTimer = setTimeout(() => { notice.textContent = ''; }, 5500);
 }
 
-function button(action, label, { icon, primary = false, data } = {}) {
+function button(action, label, { icon, primary = false, data, payment } = {}) {
   return '<button type="button" class="button' + (primary ? ' primary' : '') + '" data-action="' + action + '"'
-    + (data ? ' data-id="' + escaped(data) + '"' : '') + '>' + (icon ? icons(icon) : '') + escaped(label) + '</button>';
+    + (data ? ' data-id="' + escaped(data) + '"' : '')
+    + (payment ? ' data-payment="' + escaped(payment) + '"' : '') + '>' + (icon ? icons(icon) : '') + escaped(label) + '</button>';
 }
 
 function page(heading, subheading, actions = '') {
@@ -131,10 +132,10 @@ function render() {
     return;
   }
   const counts = [current.invoices.length, current.invoices.filter(item => invoiceStatus(current, item).state === 'ready').length, current.matches.length];
-  const cards = [['Doklady', '#doklady'], ['Připraveno ke spárování', '#doklady'], ['Spárováno', '#platby']];
+  const cards = [['Doklady', ''], ['Připraveno ke spárování', 'ready'], ['Spárováno', 'paid']];
   view.innerHTML = page('Přehled dokladů', 'Importujte doklady a ověřte jejich úhradu.', pdf + bank)
-    + '<div class="metrics">' + cards.map(([label, href], index) => '<a class="metric" href="' + href + '"'
-      + (index < 2 ? ' data-status="' + (index === 1 ? 'ready' : '') + '"' : '') + '><span>' + label + '</span><strong>' + counts[index] + '</strong></a>').join('') + '</div>'
+    + '<div class="metrics">' + cards.map(([label, status], index) => '<a class="metric" href="#doklady" data-status="'
+      + status + '"><span>' + label + '</span><strong>' + counts[index] + '</strong></a>').join('') + '</div>'
     + '<div class="section-heading"><h2>Poslední doklady</h2><a href="#doklady" data-status="">Všechny doklady</a></div>'
     + invoiceTable(current.invoices.slice(0, 6));
 }
@@ -180,8 +181,8 @@ function detail(id) {
     const payment = status.payment;
     candidate = '<div class="candidate"><h3>' + (status.state === 'paid' ? 'Spárovaná platba' : 'Nalezená platba') + '</h3><p>'
       + escaped(payment.id) + ' · ' + date(payment.posted) + ' · ' + money(payment.amount, payment.currency) + '</p><div class="actions">'
-      + (status.state === 'paid' ? button('unmatch', 'Rozpojit', { data: id })
-        : button('match', 'Spárovat platbu', { data: id, primary: true, icon: 'link' })) + '</div></div>';
+      + (status.state === 'paid' ? button('unmatch', 'Rozpojit', { data: id, payment: payment.id })
+        : button('match', 'Spárovat platbu', { data: id, payment: payment.id, primary: true, icon: 'link' })) + '</div></div>';
   } else if (status.state === 'mismatch' || status.state === 'ambiguous') {
     const explanation = status.state === 'mismatch' ? 'Příchozí platba se stejným symbolem nesouhlasí částkou, měnou nebo datem.'
       : 'Pohybu odpovídá více dokladů nebo dokladu více plateb. Párování vyžaduje jednoznačnou shodu.';
@@ -250,7 +251,7 @@ document.addEventListener('click', event => {
   }
   const control = event.target.closest('[data-action],#reset');
   if (!control) return;
-  const { action = 'reset', id } = control.dataset;
+  const { action = 'reset', id, payment } = control.dataset;
   if (action === 'pdf') showPdf();
   if (action === 'bank') showBank();
   if (action === 'detail') detail(id);
@@ -268,9 +269,12 @@ document.addEventListener('click', event => {
   });
   if (action === 'sample-bank') void perform(control, async () => loadBank(await (await sampleResponse('vypis.csv')).text()));
   if (action === 'match' || action === 'unmatch') void perform(control, async () => {
-    const expected = invoiceStatus(current, current.invoices.find(record => record.id === id)).payment?.id;
-    await commit(ledger => ({ ledger: action === 'match'
-      ? matchInvoice(ledger, id, expected) : unmatchInvoice(ledger, id) }));
+    await commit(ledger => {
+      if (action === 'match') return { ledger: matchInvoice(ledger, id, payment) };
+      const link = ledger.matches.find(match => match.invoiceId === id);
+      if (link && link.paymentId !== payment) throw new Error('Doklad má jinou spárovanou platbu. Otevřete detail znovu.');
+      return { ledger: unmatchInvoice(ledger, id) };
+    });
     detail(id);
     say(action === 'match' ? 'Doklad a platba byly spárovány.' : 'Doklad a platba byly rozpojeny.');
   });
