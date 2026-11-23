@@ -1,0 +1,95 @@
+{
+  "name": "Invoice Desk · bank statement import",
+  "id": "AardInvoiceDesk01",
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "invoice-desk-bank",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "07545ec9-b234-4c89-81d1-508ae1f679eb",
+      "name": "Bank statement",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "503c8668-a3d1-4f8e-aefc-b45ac54d0889"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:4180/api/bank-import",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { csv: $json.body.csv } }}",
+        "options": {
+          "timeout": 5000,
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "489bfa22-c610-4e55-be19-79b9a058df6a",
+      "name": "Import and reconcile",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.body }}",
+        "options": {
+          "responseCode": "={{ $json.statusCode }}"
+        }
+      },
+      "id": "206585cb-284f-49dd-a6bc-b245206eb71e",
+      "name": "Import result",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        480,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Bank statement": {
+      "main": [
+        [
+          {
+            "node": "Import and reconcile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Import and reconcile": {
+      "main": [
+        [
+          {
+            "node": "Import result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

@@ -17,6 +17,12 @@ npm start
 
 Open http://127.0.0.1:4179/. Node.js 24 builds a static site, including the sample files and self-hosted PDF.js. Matching uses integer minor units. A payment must be inbound, unassigned and posted on or after the issue date, with the same reference, amount and currency. Ambiguous candidates are left for review. The PDF importer expects the included single-page layout with a text layer. Clearing browser storage or resetting sample data restores the starting state.
 
+### Local bank import automation
+
+Run `node server/reconcile.mjs` and import [workflow/import-bank.json](workflow/import-bank.json) into a local n8n 2.x instance. Activate it and POST `{ "csv": "..." }` with the fictional `dist/fixtures/vypis.csv` as the value to the production URL shown by the webhook node. Use the same machine for n8n and the service on port 4180. The webhook returns import counts and exact match candidates. For the same input, the first call adds 3 movements and the second adds 0. The SQLite file under `artifacts/` preserves the ledger across server restarts. The browser preview keeps its own state.
+
+For a fresh test ledger, point `INVOICE_DESK_DB` to a new local file before starting the service. Run `node scripts/check-workflow.mjs` or pass your local webhook URL as its first argument. The check covers a first import, a repeated statement, a conflicting transaction ID and malformed CSV.
+
 Apache-2.0. Third-party notices are included next to the corresponding assets.
 
 ## Česky
@@ -30,3 +36,5 @@ Zkontrolujte údaje načtené z PDF, importujte bankovní výpis a potvrďte sp�
 3. Otevřete doklad a spárujte přesnou příchozí platbu v EUR. U dokladu **FV-DEMO-2402** si můžete prohlédnout neshodu v částce.
 
 Lokální spuštění vyžaduje Node.js 24 a příkazy z anglické části. Platba musí být příchozí a dosud nepřiřazená, se shodným symbolem, měnou a částkou a datem od vystavení dokladu. Nejednoznačné shody zůstávají ke kontrole. Import PDF očekává přiložený jednostránkový formát s textovou vrstvou.
+
+Lokální workflow n8n posílá text výpisu službě na portu 4180 a vrací počet vložených a přeskočených pohybů i návrhy párování. Služba zachovává importy ve vlastní SQLite databázi i po restartu. Veřejná ukázka má samostatný stav v prohlížeči.
