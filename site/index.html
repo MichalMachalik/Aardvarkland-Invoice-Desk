@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Kontrola dokladů, import bankovních pohybů a párování plateb.">
+  <title>Aardvarkland Invoice Desk</title>
+  <link rel="icon" type="image/png" href="./assets/aardvarkland.png">
+  <link rel="stylesheet" href="./assets/style.css">
+</head>
+<body>
+  <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
+    <symbol id="file" viewBox="0 0 24 24"><path d="M13 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10Z"/><path d="M13 3v7h7M8 14h8m-8 3h5"/></symbol>
+    <symbol id="bank" viewBox="0 0 24 24"><path d="m3 9 9-5 9 5H3Zm1 11h16M6 10v7m6-7v7m6-7v7"/></symbol>
+    <symbol id="history" viewBox="0 0 24 24"><path d="M3 11a9 9 0 1 1 2 7m-2-7V5m0 6h6m3-4v5l3 2"/></symbol>
+    <symbol id="upload" viewBox="0 0 24 24"><path d="M12 16V4m-5 5 5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></symbol>
+    <symbol id="check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="link" viewBox="0 0 24 24"><path d="m10 14 4-4m-6 7-1 1a3.5 3.5 0 0 1-5-5l4-4a3.5 3.5 0 0 1 5 0m2-1 1-1a3.5 3.5 0 0 1 5 5l-4 4a3.5 3.5 0 0 1-5 0" transform="translate(1 0)"/></symbol>
+    <symbol id="search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5 5"/></symbol>
+    <symbol id="close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+  </svg>
+  <aside class="sidebar">
+    <a class="brand" href="#prehled">
+      <span class="logo"><img src="./assets/aardvarkland.png" alt="" width="32" height="32"></span>
+      <span><strong>Invoice Desk</strong><small>Aardvarkland</small></span>
+    </a>
+    <nav aria-label="Pracovní prostor">
+      <a href="#prehled" data-nav="prehled"><svg class="icon"><use href="#grid"/></svg>Přehled</a>
+      <a href="#doklady" data-nav="doklady"><svg class="icon"><use href="#file"/></svg>Doklady</a>
+      <a href="#platby" data-nav="platby"><svg class="icon"><use href="#bank"/></svg>Platby</a>
+      <a href="#historie" data-nav="historie"><svg class="icon"><use href="#history"/></svg>Historie</a>
+    </nav>
+    <button class="button quiet reset" id="reset" type="button"><svg class="icon"><use href="#history"/></svg>Obnovit ukázková data</button>
+  </aside>
+  <div class="workspace">
+    <header class="topbar"><span>Finance</span><span class="divider"></span><strong id="section-label">Přehled</strong></header>
+    <main id="view"></main>
+  </div>
+  <dialog id="dialog" aria-labelledby="dialog-title"></dialog>
+  <output id="notice" role="status" aria-live="polite"></output>
+  <script type="module" src="./assets/app.js"></script>
+</body>
+</html>
